@@ -1,66 +1,49 @@
-import React, {useState, useEffect} from 'react';
-import { StyleSheet, Text, View } from 'react-native';
-import { Pedometer } from 'expo-sensors';
+import React from "react";
+import { SafeAreaView, StyleSheet, View } from "react-native";
+import { NavigationContainer } from "@react-navigation/native";
+import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
+import Ionicons from "react-native-vector-icons/Ionicons";
+import HomeScreen from "./src/screens/home/index";
+import AboutScreen from "./src/screens/about";
+import { COLOR } from "./src/configs";
+
+const Tab = createBottomTabNavigator();
 
 export default function App() {
-  const [isPedometerAvailable, setIsPedometerAvailable] = useState('checking');
-  const [pastStepCount, setPastStepCount] = useState(0);
-  const [currentStepCount, setCurrentStepCount] = useState(0);
+  return (
+    <NavigationContainer>
+      <Tab.Navigator 
+        screenOptions={({ route }) => ({
+          tabBarShowLabel: false,
+          tabBarIcon: ({ focused, color, size }) => {
+            let iconName;
 
-  let _subscription;
+            if (route.name === "Home") {
+              iconName = focused ? "home" : "home-outline";
+            } else if (route.name === "Settings") {
+              iconName = focused ? "settings" : "settings-outline";
+            }
 
-  const _subscribe = () => {
-    _subscription = Pedometer.watchStepCount(result => {
-      setCurrentStepCount(result.steps);
-    });
-
-    Pedometer.isAvailableAsync().then(
-      result => {
-        setIsPedometerAvailable(result);
-      },
-      error => {
-        setIsPedometerAvailable('Could not get isPedometerAvailable: ' + error);
-      }
-    );
-
-    const end = new Date();
-    const start = new Date();
-    start.setDate(end.getDate() - 1);
-    Pedometer.getStepCountAsync(start, end).then(
-      result => {
-        setPastStepCount(result.steps);
-      },
-      error => {
-        setPastStepCount('Could not get stepCount: ' + error);
-      }
-    );
-  };
-
-  const _unsubscribe = () => {
-    _subscription && _subscription.remove();
-    _subscription = null;
-  };
-
-
-  useEffect(()=>{
-    _subscribe();
-    return ()=> _unsubscribe();
-  },[])
-
-    return (
-      <View style={styles.container}>
-        <Text>Pedometer.isAvailableAsync(): {isPedometerAvailable}</Text>
-        <Text>Steps taken in the last 24 hours: {pastStepCount}</Text>
-        <Text>Walk! And watch this go up: {currentStepCount}</Text>
-      </View>
-    );
+            // You can return any component that you like here!
+            return <Ionicons name={iconName} size={size} color={color} />;
+          },
+          tabBarActiveTintColor: COLOR.PRIMARY,
+          tabBarInactiveTintColor: "gray",
+        })}
+      >
+        <Tab.Screen
+          name="Home"
+          component={HomeScreen}
+          options={{ headerShown: false }}
+        />
+        <Tab.Screen name="Settings" component={AboutScreen} />
+      </Tab.Navigator>
+    </NavigationContainer>
+  );
 }
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    marginTop: 15,
-    alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: "#FAFCFF",
   },
 });
